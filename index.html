@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="face(book)^2 : It's facebook, in an actual book!" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>face(book)^2</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/sciguy14/facebook-squared">View on GitHub</a>
+
+          <h1 id="project_title">face(book)^2</h1>
+          <h2 id="project_tagline">It's facebook, in an actual book!</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/sciguy14/facebook-squared/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/sciguy14/facebook-squared/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>Facebook Summer of Hack NYC 2012 - face(book)^2</h1>
+
+<p><img src="images/presenting.JPG" alt="Jason and I showing off face(book)^2">
+Event Info:
+<a href="https://www.facebook.com/events/100370656773845/">https://www.facebook.com/events/100370656773845/</a></p>
+
+<p>The premise of face(book)^2:<br>
+face(book)^2 is a physical implementation of facebook.  It is, quite literally, a facebook book.  We built electronics into a large book and pulled data from the facebook api via a python script running on a computer connected wirelessly to our book via a wireless serial XBEE link.</p>
+
+<p>Created by:  </p>
+
+<ul>
+<li>Jeremy Blum (<a href="https://www.github.com/sciguy14">https://www.github.com/sciguy14</a>)</li>
+<li>Jason Wright (<a href="https://github.com/jpwright">https://github.com/jpwright</a>)</li>
+</ul><h2>Book Hardware Contents</h2>
+
+<ul>
+<li>One large 16x2 Character Display for showing context-relevant title information</li>
+<li>Three 16x4 Character Displays for showing recent feed updates, post comments, etc</li>
+<li>A monochrome LCD from an old Nokia Cell phone for displaying low-res bitmap versions of profile pics and favicons</li>
+<li>An accelerometer for detecting a "page turn" motion for flipping through the newfeed data</li>
+<li>Three pushbuttons for selecting to show details of a particular 16x4 LCD</li>
+<li>4 Trimpots for adjusting the contrast of all the character displays</li>
+<li>An Arduino Mega for all the control and processing</li>
+<li>An XBee shield with an Xbee Radio hooked up (in a non-standard fasion) to Serial1 (Serial0 is used for USB Debugging)</li>
+<li>A Level shift for interfacing the monochrome display</li>
+<li>A button for returning to the home screen</li>
+<li>A "like" button for liking or unliking posts from your friends</li>
+<li>A limit switch for detecting when the book is open and putting it to sleep when closed.</li>
+<li>The biggest book that we could find at Barnes and Noble on such short notice</li>
+</ul><h2>System Operation Scheme</h2>
+
+<ol>
+<li>Book is opened, triggering release of limit switch</li>
+<li>MCU says hello to the computer via Xbee</li>
+<li>User logs into facebook on computer, which authenticates them via OAuth.  Username is passed to book for display</li>
+<li>Book requests the news feed</li>
+<li>Computer queries user data from facebook API, formats strings, adds special characters, and transmits them back to book</li>
+<li>Book interprets datastrings and prints appopriately on screens</li>
+<li>Acceleromters can be used to "turn the page" which cycles newsfeed items</li>
+<li>User can click button next to each item to expand it, see comments, etc</li>
+<li>In expanded view, usesr can use a dedicated button to like or dislike items</li>
+<li>Accelerometer can be used to see additional comments, etc</li>
+<li>Nokia Display is used to show low-res bitmap version of user avatar</li>
+</ol><h2>Serial Interface Documentation</h2>
+
+<ul>
+<li>General Syntax
+
+<ul>
+<li>All commands start with a '.' character</li>
+<li>All commands end with a newline '\n' character</li>
+<li>first character indicates the command</li>
+<li>followed by comma seperated arguments</li>
+<li>Computer can only repond to requests from the hardware</li>
+<li>Arduino responds on executions completed with 'z' ACK character followed the same command char plus a newline</li>
+</ul>
+</li>
+<li>Special Characters, there is never more than one on a line
+
+<ul>
+<li>0 &lt;l&gt; is like<br>
+</li>
+<li>1 &lt;c&gt; is comment<br>
+</li>
+<li>2 &lt;p&gt; is place<br>
+</li>
+<li>3 &lt;s&gt; is squared<br>
+</li>
+<li>4 &lt;u&gt; is link<br>
+</li>
+<li>5 &lt;d&gt; is desc [DEPRECATED]<br>
+</li>
+<li>6 &lt;e&gt; is ellipsis (...)<br>
+</li>
+</ul>
+</li>
+<li>From the Hardware
+
+<ul>
+<li>Hello                                   = .h\n</li>
+<li>Request Feed                            = .f\n</li>
+<li>Expand Item                             = .e[feed # to expand]\n </li>
+<li>Next Item (contextual)                  = .n\n</li>
+<li>Previous Item (contextual)              = .p\n</li>
+<li>"Like" Item (contextual)                = .l\n</li>
+<li>Request Graphical Display Contents      = .g\n</li>
+<li>Close                                   = .c\n</li>
+</ul>
+</li>
+<li>
+<p>From the Computer</p>
+
+<ul>
+<li>Hello ID                                = .h[String containing User First Name]\n</li>
+<li>Return Feed Contents                    = .f[string for display 1],[string for display 2],[etc]...\n</li>
+<li>Return Expanded View Contents           = .e[string for display 1],[string for display 2],[etc]...\n</li>
+<li>Return Graphical Display Binary Data    = .g[binary data string representing all pixels]\n</li>
+<li>Write a line to a display               = .w[display ID char (t,1,2,3)],[display line # char (0,1,2,3),[String of Data]\n</li>
+</ul>
+<h2>External Resouces for Arduino</h2>
+
+<ul>
+<li>Adafruit Graphical LCD Arduino Library: <a href="https://github.com/adafruit/Adafruit-PCD8544-Nokia-5110-LCD-library">https://github.com/adafruit/Adafruit-PCD8544-Nokia-5110-LCD-library</a>
+</li>
+<li>Adafruit GFX Library: <a href="https://github.com/adafruit/Adafruit-GFX-Library">https://github.com/adafruit/Adafruit-GFX-Library</a>
+</li>
+</ul>
+<h2>External Resources for Python</h2>
+
+<ul>
+<li>Facebook Console: <a href="https://github.com/facebook/fbconsole">https://github.com/facebook/fbconsole</a>
+</li>
+<li>SimpleJson Module: <a href="https://github.com/simplejson/simplejson">https://github.com/simplejson/simplejson</a>
+</li>
+<li>pySerial Module: <a href="http://pyserial.sourceforge.net/">http://pyserial.sourceforge.net/</a>
+</li>
+<li>
+</ul>
+<h2>LiquidCrystal Arduino Library Mod</h2>
+
+<p>There is known issue with addressing 16x4 LCDS
+See Here: <a href="http://www.arduino.cc/cgi-bin/yabb2/YaBB.pl?num=1253367247/6">http://www.arduino.cc/cgi-bin/yabb2/YaBB.pl?num=1253367247/6</a>
+This fix was applied: int row_offsets[] = { 0x00, 0x40, 0x10, 0x50 };
+Note that this will probably prevent 20x4 LCDs from working.</p>
+</li>
+</ul>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">face(book)^2 maintained by <a href="https://github.com/sciguy14">sciguy14</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
